@@ -1,6 +1,6 @@
 ---
 title: "Reliability Simulations"
-subtitle: "PSYC 201A simulation exercises"
+subtitle: "PSYC 201A, Simulation Lab 3"
 author: "Your name here"
 date: today
 format:
@@ -44,11 +44,11 @@ library(tidyverse)
 
 # Part 1: Simulate the first experiment
 
-## The simulation function, same as in the inference simulations
+## The simulation function, same as in Lab 2
 
 `make_tea_data()` makes "tea data": a tibble with `n_total` people split evenly between two conditions, rating tea on a 1–10 scale. The milk-first condition is `delta` points higher on average, and people within a condition vary with standard deviation `sigma`.
 
-One change from the inference simulations: each row now has a `sub_num`, so we can follow the same person across two experiments.
+One change from Lab 2: each row now has a `sub_num`, so we can follow the same person across two experiments.
 
 ```{r}
 make_tea_data <- function(n_total = 48,

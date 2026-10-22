@@ -1,6 +1,6 @@
-# Reliability simulation exercises
+# Simulation Lab 3: reliability
 
-Simulation exercises for **PSYC 201A** (UC San Diego), accompanying the
+Third simulation lab for **PSYC 201A** (UC San Diego), accompanying the
 measurement chapter of [Experimentology](https://experimentology.io/) (Ch. 8).
 You will simulate the same people taking the same measure twice and use the
 simulations to see what test-retest reliability is and what drives it. When you
@@ -16,12 +16,12 @@ are done you will have:
   restricted range makes it look less reliable
 - (Bonus) Used Spearman-Brown to predict what averaging more ratings buys you
 
-The running example is the tea ratings from the inference simulations: the
-same people rate the tea again, and nobody gives exactly the same rating twice.
+The running example is the tea ratings from Lab 2: the same people rate the tea
+again, and nobody gives exactly the same rating twice.
 
 > **Before you start:** finish
 > [getting-started-with-r](https://github.com/psyc-201/getting-started-with-r)
-> and [the inference simulations](https://github.com/psyc-201/inference_simulations_lab_2).
+> and [Simulation Lab 2](https://github.com/psyc-201/inference_simulations_lab_2).
 > This lab needs only the tidyverse, nothing else.
 
 ---
@@ -79,7 +79,7 @@ ignored by git, so only your `.qmd` is pushed.
 ```
 reliability_simulation_exercises/
 ├── reliability_simulation_exercises.Rproj     open this to start work
-├── ch8_reliability_simulations.qmd            the exercises
+├── ch8_reliability_simulations.qmd            the lab
 └── ch8_reliability_simulations_solutions.qmd  answer key
 ```
 
