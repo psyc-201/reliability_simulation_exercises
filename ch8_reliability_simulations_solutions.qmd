@@ -1,0 +1,284 @@
+---
+title: "Reliability Simulations (solutions)"
+subtitle: "PSYC 201A, Simulation Lab 3"
+author: "Answer key"
+date: today
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+  error: true
+---
+
+## Tips before getting started
+
+This document accompanies the measurement lecture in Psych 201a (Experimentology, Ch. 8). You will simulate the same people taking the same measure twice and use the simulations to see what test-retest reliability is, and what makes it go up or down.
+
+Open this file by double-clicking `reliability_simulations_lab_3.Rproj` first, then opening it from the Files pane. The only package it needs is the tidyverse, which you installed in getting-started-with-r.
+
+To understand what a function does, type `?function_name` in the Console (e.g., `?sample`).
+
+`error: true` is set at the top of this file, so it still renders while some chunks are unfinished: those chunks show their error in red. Later chunks depend on objects you create earlier (`tea_data`, `tea_retest`, `tea_retest_long`), so work from top to bottom.
+
+# Setup
+
+```{r}
+set.seed(2026) # same "random" numbers on every render
+```
+
+## Import the libraries
+
+```{r}
+#| eval: false
+install.packages("tidyverse")
+```
+
+```{r}
+library(tidyverse)
+```
+
+# Part 1: Simulate the first experiment
+
+## The simulation function, same as in Lab 2
+
+`make_tea_data()` makes "tea data": a tibble with `n_total` people split evenly between two conditions, rating tea on a 1–10 scale. The milk-first condition is `delta` points higher on average, and people within a condition vary with standard deviation `sigma`.
+
+One change from Lab 2: each row now has a `sub_num`, so we can follow the same person across two experiments.
+
+```{r}
+make_tea_data <- function(n_total = 48,
+                          sigma = 1.25, # sd of ratings within a condition
+                          delta = 1.5) { # difference between conditions
+  n_half <- n_total / 2
+  tibble(condition = c(rep("milk first", n_half), rep("tea first", n_half)),
+         rating = c(round(rnorm(n_half, mean = 3.5 + delta, sd = sigma)),
+                    round(rnorm(n_half, mean = 3.5, sd = sigma)))) |>
+    mutate(rating = pmin(pmax(rating, 1), 10), # keep ratings on the 1-10 scale
+           sub_num = row_number())
+}
+```
+
+To do: Make `tea_data` with 60 participants per condition (`n_total = 120`), a 2-point difference between conditions (`delta = 2`), and `sigma = 2`.
+
+```{r}
+tea_data <- make_tea_data(n_total = 120, delta = 2, sigma = 2)
+
+head(tea_data)
+```
+
+# Part 2: Simulate the retest
+
+Now the same people come back and rate the tea again. Nobody gives exactly the same rating twice, so each person's second rating is their first rating plus a random `difference` between −3 and 3.
+
+`sample(-3:3, 1)` draws one number from −3 to 3. If you call it inside `mutate()` on its own, tidyverse draws it **once** and gives every participant the same change, which is not realistic. `rowwise()` makes `mutate()` run separately for each row, so everyone gets their own draw. `ungroup()` turns that off again.
+
+To do: Fill in the blanks so that `tea_retest` has `rating_exp_1`, a per-person `difference`, and `rating_exp_2` kept between 1 and 10.
+
+```{r}
+tea_retest <- tea_data |>
+  rename(rating_exp_1 = rating) |>
+  rowwise() |>
+  mutate(difference = sample(-3:3, 1)) |>
+  ungroup() |>
+  mutate(rating_exp_2 = pmin(pmax(rating_exp_1 + difference, 1), 10))
+
+head(tea_retest)
+```
+
+To do: Check that it worked. How many different values of `difference` are there? (Hint: `count(tea_retest, difference)`.)
+
+```{r}
+count(tea_retest, difference)
+```
+
+# Part 3: Plot it and compute test-retest reliability
+
+To do: Plot `rating_exp_1` (x) against `rating_exp_2` (y). Ratings are whole numbers, so many points sit on top of each other: try `geom_jitter()` instead of `geom_point()`, and `alpha` to make points see-through. Add a fitted line with `geom_smooth(method = "lm")`.
+
+```{r}
+ggplot(tea_retest, aes(x = rating_exp_1, y = rating_exp_2)) +
+  geom_jitter(width = .15, height = .15, alpha = .6) +
+  geom_smooth(method = "lm") +
+  labs(x = "Rating, experiment 1", y = "Rating, experiment 2",
+       title = "Test-retest reliability")
+```
+
+To do: Use `cor.test()` to get the test-retest correlation. Use `$` to pick out the columns (e.g., `tea_retest$rating_exp_1`).
+
+```{r}
+retest_cor <- cor.test(tea_retest$rating_exp_1, tea_retest$rating_exp_2)
+retest_cor
+```
+
+To do: Finish this sentence with inline R, so the number comes from your code:
+
+The test-retest reliability of tea ratings was r = `r round(retest_cor$estimate, 2)`.
+
+To do: Now compute the correlation separately within each condition (hint: `group_by(condition)` then `summarise(r = cor(rating_exp_1, rating_exp_2))`). Is it higher or lower than the overall correlation? Why?
+
+```{r}
+tea_retest |>
+  group_by(condition) |>
+  summarise(r = cor(rating_exp_1, rating_exp_2))
+```
+
+*Answer:* Lower, on average across the two conditions (one condition can land close to the overall value by chance; set `delta = 5` in Part 1 to see the gap clearly). Pooling the two conditions adds the condition difference to the spread between people, and reliability is between-person variance relative to noise. More spread between people, same noise, higher correlation. Reliability is a property of scores in a particular sample, not of the measure alone.
+
+# Part 4: Follow each person across experiments
+
+This is the plot from the chapter: one line per person, connecting their two ratings.
+
+To do: Use `pivot_longer()` to put both ratings in one column. You want a column `experiment` (which experiment) and a column `rating` (the value).
+
+Before:
+
+| sub_num | condition | rating_exp_1 | rating_exp_2 |
+|---------|-----------|--------------|--------------|
+
+After:
+
+| sub_num | condition | experiment   | rating |
+|---------|-----------|--------------|--------|
+
+```{r}
+tea_retest_long <- tea_retest |>
+  select(-difference) |>
+  pivot_longer(cols = c(rating_exp_1, rating_exp_2),
+               names_to = "experiment",
+               values_to = "rating")
+
+head(tea_retest_long)
+```
+
+To do: Plot `experiment` (x) by `rating` (y), with one line per participant (`geom_line(aes(group = sub_num))`), and one panel per condition (`facet_wrap(~condition)`).
+
+```{r}
+ggplot(tea_retest_long, aes(x = experiment, y = rating, color = condition)) +
+  geom_point(alpha = .6) +
+  geom_line(aes(group = sub_num), alpha = .4) +
+  facet_wrap(~condition) +
+  labs(x = NULL, y = "Rating") +
+  theme(legend.position = "none")
+```
+
+To do: If reliability were perfect, what would the lines look like? What would they look like if reliability were zero?
+
+*Answer:* Perfect reliability: every line flat (or all parallel), so people keep their order. Zero reliability: lines cross every which way, so knowing someone's first rating tells you nothing about their second.
+
+# Part 5: What makes reliability go up or down?
+
+Instead of editing numbers by hand and rerunning, wrap the whole simulation in a function and run it many times.
+
+`simulate_reliability()` makes one experiment-plus-retest and returns the test-retest correlation. It uses a shortcut for the retest: `sample(-max_change:max_change, n(), replace = TRUE)` draws one change per participant in a single call, so no `rowwise()` needed.
+
+To do: Fill in the blank so the function returns the correlation between `rating_exp_1` and `rating_exp_2`.
+
+```{r}
+simulate_reliability <- function(n_total = 120, sigma = 2, delta = 2,
+                                 max_change = 3) {
+  make_tea_data(n_total = n_total, sigma = sigma, delta = delta) |>
+    rename(rating_exp_1 = rating) |>
+    mutate(difference = sample(-max_change:max_change, n(), replace = TRUE),
+           rating_exp_2 = pmin(pmax(rating_exp_1 + difference, 1), 10)) |>
+    summarise(r = cor(rating_exp_1, rating_exp_2)) |>
+    pull(r)
+}
+
+simulate_reliability()
+```
+
+## Between-person spread vs. retest noise
+
+`expand_grid()` makes one row for every combination of `sigma` (how much people differ from each other) and `max_change` (how much each person's rating drifts between sessions), 50 times each. `pmap_dbl()` calls `simulate_reliability()` once per row.
+
+```{r}
+reliability_grid <- expand_grid(sigma = c(0.5, 1, 2, 3),
+                                max_change = c(1, 3, 5),
+                                sim = 1:50) |>
+  mutate(r = pmap_dbl(list(sigma = sigma, max_change = max_change),
+                      simulate_reliability))
+```
+
+To do: Average `r` over the 50 simulations for each `sigma` × `max_change`, then plot `sigma` (x) against mean `r` (y), with one line per `max_change` (hint: `color = factor(max_change)`).
+
+```{r}
+reliability_grid |>
+  group_by(sigma, max_change) |>
+  summarise(mean_r = mean(r), .groups = "drop") |>
+  ggplot(aes(x = sigma, y = mean_r, color = factor(max_change))) +
+  geom_point() +
+  geom_line() +
+  labs(x = "Between-person SD (sigma)", y = "Mean test-retest r",
+       color = "Max change\nbetween sessions")
+```
+
+To do: Answer these questions.
+
+1.  What happens to reliability as people differ more from each other (bigger `sigma`)?
+2.  What happens as each person's rating drifts more between sessions (bigger `max_change`)?
+3.  Explain both in one sentence using the idea of "signal" and "noise."
+
+*Answers:* (1) It goes up. (2) It goes down. (3) Reliability is the share of the variation in scores that comes from stable differences between people (signal) rather than session-to-session change (noise), so anything that adds signal or removes noise raises it.
+
+## Does sample size change reliability?
+
+```{r}
+n_grid <- expand_grid(n_total = c(20, 60, 200), sim = 1:200) |>
+  mutate(r = map_dbl(n_total, \(n) simulate_reliability(n_total = n)))
+```
+
+To do: Plot the distribution of `r` for each sample size (hint: `geom_histogram()` with `facet_wrap(~n_total, ncol = 1)`, or `geom_density()` with `fill = factor(n_total)`).
+
+```{r}
+ggplot(n_grid, aes(x = r)) +
+  geom_histogram(binwidth = .025) +
+  facet_wrap(~n_total, ncol = 1, labeller = label_both) +
+  labs(x = "Test-retest r", y = "Number of simulations")
+```
+
+To do: Does a bigger sample make the measure more reliable?
+
+*Answer:* No. The center of each distribution is about the same: sample size doesn't change how reliable the measure is. A bigger sample only makes your *estimate* of the reliability more precise (narrower distribution). With 20 people, a single study can easily report a reliability that is far too high or too low.
+
+# Part 6: Restricted range
+
+Say you only analyze people who rated the tea 6 or higher in experiment 1 (like keeping only animals that passed a training criterion, or only testing students in one PhD program).
+
+To do: Filter `tea_retest` to `rating_exp_1 >= 6` and compute the test-retest correlation. Compare it to the full-sample value from Part 3.
+
+```{r}
+tea_retest |>
+  filter(rating_exp_1 >= 6) |>
+  summarise(n = n(), r = cor(rating_exp_1, rating_exp_2))
+```
+
+*Answer:* Much lower. Selecting on the measure shrinks the stable differences between people while the session-to-session noise stays the same. Same measure, same people, lower reliability: this is quiz question 5.
+
+# Bonus: more ratings per person (Spearman-Brown)
+
+Spearman-Brown predicts how reliability changes if each person gives `k` times as many ratings (e.g., tastes four cups instead of one and you average them):
+
+$$r_k = \frac{k \cdot r}{1 + (k - 1) \cdot r}$$
+
+To do: Use your Part 3 reliability to predict reliability with 2, 4, and 8 ratings per session.
+
+```{r}
+r1 <- unname(retest_cor$estimate)
+tibble(k = c(1, 2, 4, 8)) |>
+  mutate(predicted_r = k * r1 / (1 + (k - 1) * r1))
+```
+
+To do: Why does averaging help? How is this related to the flanker question on the practice quiz?
+
+*Answer:* Averaging cancels out some of each person's session-to-session noise but keeps their stable level, so the signal-to-noise ratio improves. A flanker effect from 10 trials per condition is a noisy one-shot score; more trials per person raise its reliability, which in turn raises the ceiling on how strongly it can correlate with anything else.
+
+# Exercises
+
+1.  Go back to Part 1 and set `delta = 0`, so the conditions don't differ. Rerun Parts 1–3. What happens to the overall test-retest correlation, and why?
+2.  In Part 2, people's ratings drift up or down at random. What if everyone's second rating were exactly 1 point higher (`difference = 1` for everyone)? What would the correlation be? Would the measure be reliable? Would it be valid?
+3.  Think about your own project's DV. What plays the role of `sigma` (stable differences between people), and what plays the role of `max_change` (noise between sessions, trials, or raters)? What could you change in your design to improve the ratio?
+
+*Answers:* (1) It drops, because the 2-point gap between conditions was adding between-person spread; now only `sigma` contributes. (2) r = 1, apart from the clipping at 10, because a constant shift doesn't change anyone's order. Perfectly reliable, but every second rating is biased by 1 point, so a reliable measure can still be systematically wrong (quiz question 3). (3) Open-ended.
