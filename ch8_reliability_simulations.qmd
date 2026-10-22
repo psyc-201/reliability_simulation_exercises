@@ -237,7 +237,7 @@ To do: Filter `tea_retest` to `rating_exp_1 >= 6` and compute the test-retest co
 
 # Bonus: more ratings per person (Spearman-Brown)
 
-Spearman-Brown predicts how reliability changes if each person gives `k` times as many ratings (e.g., tastes four cups instead of one and you average them):
+Spearman-Brown predicts how reliability changes if each person gives `k` times as many ratings (e.g., tastes four cups instead of one and you average them). It assumes each extra rating has its own, independent noise:
 
 $$r_k = \frac{k \cdot r}{1 + (k - 1) \cdot r}$$
 

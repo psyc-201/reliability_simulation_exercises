@@ -166,7 +166,7 @@ ggplot(tea_retest_long, aes(x = experiment, y = rating, color = condition)) +
 
 To do: If reliability were perfect, what would the lines look like? What would they look like if reliability were zero?
 
-*Answer:* Perfect reliability: every line flat (or all parallel), so people keep their order. Zero reliability: lines cross every which way, so knowing someone's first rating tells you nothing about their second.
+*Answer:* Perfect reliability: no two lines cross, so everyone keeps their rank order. The lines don't have to be flat or parallel: a correlation of 1 only needs the order kept, not the same rating twice. Zero reliability: lines cross every which way, so knowing someone's first rating tells you nothing about their second.
 
 # Part 5: What makes reliability go up or down?
 
@@ -259,7 +259,7 @@ tea_retest |>
 
 # Bonus: more ratings per person (Spearman-Brown)
 
-Spearman-Brown predicts how reliability changes if each person gives `k` times as many ratings (e.g., tastes four cups instead of one and you average them):
+Spearman-Brown predicts how reliability changes if each person gives `k` times as many ratings (e.g., tastes four cups instead of one and you average them). It assumes each extra rating has its own, independent noise:
 
 $$r_k = \frac{k \cdot r}{1 + (k - 1) \cdot r}$$
 
@@ -273,7 +273,7 @@ tibble(k = c(1, 2, 4, 8)) |>
 
 To do: Why does averaging help? How is this related to the flanker question on the practice quiz?
 
-*Answer:* Averaging cancels out some of each person's session-to-session noise but keeps their stable level, so the signal-to-noise ratio improves. A flanker effect from 10 trials per condition is a noisy one-shot score; more trials per person raise its reliability, which in turn raises the ceiling on how strongly it can correlate with anything else.
+*Answer:* Each person's stable level is the same in every rating, but the noise is different each time, so averaging keeps the signal and cancels out part of the noise. This only works for noise that changes from rating to rating: if someone is in a bad mood that day, all four cups share that mood, and averaging them doesn't remove it. A flanker effect from 10 trials per condition is a noisy one-shot score; more trials per person raise its reliability, which in turn raises the ceiling on how strongly it can correlate with anything else.
 
 # Exercises
 
@@ -281,4 +281,4 @@ To do: Why does averaging help? How is this related to the flanker question on t
 2.  In Part 2, people's ratings drift up or down at random. What if everyone's second rating were exactly 1 point higher (`difference = 1` for everyone)? What would the correlation be? Would the measure be reliable? Would it be valid?
 3.  Think about your own project's DV. What plays the role of `sigma` (stable differences between people), and what plays the role of `max_change` (noise between sessions, trials, or raters)? What could you change in your design to improve the ratio?
 
-*Answers:* (1) It drops, because the 2-point gap between conditions was adding between-person spread; now only `sigma` contributes. (2) r = 1, apart from the clipping at 10, because a constant shift doesn't change anyone's order. Perfectly reliable, but every second rating is biased by 1 point, so a reliable measure can still be systematically wrong (quiz question 3). (3) Open-ended.
+*Answers:* (1) It drops, because the 2-point gap between conditions was adding between-person spread; now only `sigma` contributes. (2) r = 1, apart from the clipping at 10, because a correlation ignores a shift that is the same for everyone: nobody's order changes. So by this test the measure is perfectly reliable, even though nobody gave the same rating twice. A shift like this (e.g., a practice effect) only shows up if you also compare the session means. Validity is a separate question that this simulation can't answer: a rating can be perfectly consistent and still not measure what you think it measures (quiz question 3). (3) Open-ended.
