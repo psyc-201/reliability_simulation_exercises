@@ -1,6 +1,6 @@
-# Simulation Lab 3: reliability
+# Reliability simulation exercises
 
-Third simulation lab for **PSYC 201A** (UC San Diego), accompanying the
+Simulation exercises for **PSYC 201A** (UC San Diego), accompanying the
 measurement chapter of [Experimentology](https://experimentology.io/) (Ch. 8).
 You will simulate the same people taking the same measure twice and use the
 simulations to see what test-retest reliability is and what drives it. When you
@@ -16,12 +16,12 @@ are done you will have:
   restricted range makes it look less reliable
 - (Bonus) Used Spearman-Brown to predict what averaging more ratings buys you
 
-The running example is the tea ratings from Lab 2: the same people rate the tea
-again, and nobody gives exactly the same rating twice.
+The running example is the tea ratings from the inference simulations: the
+same people rate the tea again, and nobody gives exactly the same rating twice.
 
 > **Before you start:** finish
 > [getting-started-with-r](https://github.com/psyc-201/getting-started-with-r)
-> and [Simulation Lab 2](https://github.com/psyc-201/inference_simulations_lab_2).
+> and [the inference simulations](https://github.com/psyc-201/inference_simulations_lab_2).
 > This lab needs only the tidyverse, nothing else.
 
 ---
@@ -30,9 +30,9 @@ again, and nobody gives exactly the same rating twice.
 
 Same steps as in getting-started-with-r:
 
-1. At the top of [this repository's GitHub page](https://github.com/psyc-201/reliability_simulations_lab_3),
+1. At the top of [this repository's GitHub page](https://github.com/psyc-201/reliability_simulation_exercises),
    click the green **Use this template** button, then **Create a new repository**.
-2. Owner: **your own account**. Name it `reliability_simulations_lab_3`, leave
+2. Owner: **your own account**. Name it `reliability_simulation_exercises`, leave
    it **Public**, and click **Create repository**.
 3. On *your* copy, click **Code** → **Open with GitHub Desktop** → **Clone**.
 
@@ -41,7 +41,7 @@ Step-by-step version:
 
 ## Part 2. Open the project
 
-**Double-click `reliability_simulations_lab_3.Rproj`** to open RStudio inside
+**Double-click `reliability_simulation_exercises.Rproj`** to open RStudio inside
 the project, then open `ch8_reliability_simulations.qmd` from the Files pane
 and put your name in the `author:` line.
 
@@ -77,9 +77,9 @@ ignored by git, so only your `.qmd` is pushed.
 ## What is in this repository
 
 ```
-reliability_simulations_lab_3/
-├── reliability_simulations_lab_3.Rproj        open this to start work
-├── ch8_reliability_simulations.qmd            the lab
+reliability_simulation_exercises/
+├── reliability_simulation_exercises.Rproj     open this to start work
+├── ch8_reliability_simulations.qmd            the exercises
 └── ch8_reliability_simulations_solutions.qmd  answer key
 ```
 
